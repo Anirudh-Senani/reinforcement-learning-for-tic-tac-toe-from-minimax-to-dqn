@@ -21,8 +21,16 @@ def encode_player(player):
     encoding = {'X':1, 'O':-1, 'empty':0}
     return encoding[player]
 
-# Step 3 - print_board (not yet solved)
-# TODO: implement
+# Step 3 - print_board
+import numpy as np
+
+def print_board(board):
+    """Print the 3x3 board using X, O, and . characters."""
+    # TODO: render each cell as 'X' (1), 'O' (-1), or '.' (0) in a 3x3 grid
+    board = board.tolist()
+    encoding = {1:'X',-1:'O',0:'.'}
+    for row in board:
+        print(*[encoding[col] for col in row], sep=" ")
 
 # Step 4 - is_cell_empty (not yet solved)
 # TODO: implement
