@@ -14,8 +14,12 @@ def create_empty_board():
     # TODO: return a (3, 3) integer numpy array filled with zeros
     return np.zeros((3,3), dtype=np.int32)
 
-# Step 2 - encode_player (not yet solved)
-# TODO: implement
+# Step 2 - encode_player
+def encode_player(player):
+    """Return the integer encoding for 'X', 'O', or 'empty'."""
+    # TODO: map 'X' to 1, 'O' to -1, 'empty' to 0
+    encoding = {'X':1, 'O':-1, 'empty':0}
+    return encoding[player]
 
 # Step 3 - print_board (not yet solved)
 # TODO: implement
