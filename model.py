@@ -32,8 +32,13 @@ def print_board(board):
     for row in board:
         print(*[encoding[col] for col in row], sep=" ")
 
-# Step 4 - is_cell_empty (not yet solved)
-# TODO: implement
+# Step 4 - is_cell_empty
+import numpy as np
+
+def is_cell_empty(board, row, col):
+    """Return True if board[row, col] is empty (0), else False."""
+    # TODO: check whether the cell at (row, col) is empty
+    return board[row, col] == 0
 
 # Step 5 - place_move (not yet solved)
 # TODO: implement
