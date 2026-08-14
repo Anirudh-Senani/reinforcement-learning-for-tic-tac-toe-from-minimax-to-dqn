@@ -233,8 +233,13 @@ class TicTacToeGame:
         else:
             raise ValueError
 
-# Step 19 - random_move_agent (not yet solved)
-# TODO: implement
+# Step 19 - random_move_agent
+import numpy as np
+
+def random_move_agent(board, player, rng):
+    """Return a uniformly random legal (row, col) move for `player`."""
+    # TODO: sample a uniformly random legal move using rng and return it as (row, col)
+    return tuple(rng.choice(get_legal_moves(board)).tolist())
 
 # Step 20 - play_random_vs_random_game (not yet solved)
 # TODO: implement
