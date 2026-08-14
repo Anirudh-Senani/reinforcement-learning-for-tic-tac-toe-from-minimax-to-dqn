@@ -101,8 +101,16 @@ def is_winner(board, player):
     # TODO: combine row, column, and diagonal win checks into a single boolean
     return check_row_win(board, player) or check_column_win(board, player) or check_main_diagonal_win(board, player) or check_anti_diagonal_win(board, player)
 
-# Step 12 - is_draw (not yet solved)
-# TODO: implement
+# Step 12 - is_draw
+import numpy as np
+
+def is_draw(board):
+    """Return True iff the board is full and neither player has won."""
+    # TODO: combine a full-board check with a no-winner check
+    if np.all(board!=0):
+        if not (is_winner(board, 1) or is_winner(board, -1)):
+            return True
+    return False
 
 # Step 13 - get_game_status (not yet solved)
 # TODO: implement
