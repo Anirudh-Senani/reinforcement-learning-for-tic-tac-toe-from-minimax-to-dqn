@@ -60,8 +60,14 @@ def get_legal_moves(board):
     # TODO: scan the 3x3 board in row-major order and collect coords of empties
     return [tuple(coord) for coord in np.argwhere(board==0).tolist()]
 
-# Step 7 - check_row_win (not yet solved)
-# TODO: implement
+# Step 7 - check_row_win
+import numpy as np
+
+def check_row_win(board, player):
+    """Return True if `player` has three-in-a-row across any row of `board`."""
+    # TODO: detect whether the given player has three identical marks across any row
+    row_len = board.shape[1]
+    return np.any((board == player).sum(axis=-1)==row_len)
 
 # Step 8 - check_column_win (not yet solved)
 # TODO: implement
