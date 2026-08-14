@@ -249,19 +249,19 @@ def play_random_vs_random_game(rng):
     board = create_empty_board()
     status = 'ongoing'
     while True:
-        row, col = random_move_agent(board, player, rng)
         try:
-            # print_board(board)
-            board = place_move(board, row, col, player)
+            row, col = random_move_agent(board, player, rng)
         except ValueError:
-            continue
+            status = get_game_status(board)
+            break
+
+        board = place_move(board, row, col, player)
         player = switch_player(player)
         status = get_game_status(board)
 
-        if status in ('X_win', 'O_win', ' draw'):
+        if status in ('X_win', 'O_win', 'draw'):
             break
 
-    # print_board(board)
     return status
 
 # Step 21 - play_random_vs_random_matches (not yet solved)
