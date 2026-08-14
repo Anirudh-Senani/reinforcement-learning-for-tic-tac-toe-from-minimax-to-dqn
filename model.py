@@ -93,8 +93,13 @@ def check_anti_diagonal_win(board, player):
     # TODO: return True if `player` occupies all three anti-diagonal cells of the 3x3 board.
     return np.all(np.fliplr(board).diagonal() == player)
 
-# Step 11 - is_winner (not yet solved)
-# TODO: implement
+# Step 11 - is_winner
+import numpy as np
+
+def is_winner(board, player):
+    """Return True if `player` has three-in-a-row on `board`."""
+    # TODO: combine row, column, and diagonal win checks into a single boolean
+    return check_row_win(board, player) or check_column_win(board, player) or check_main_diagonal_win(board, player) or check_anti_diagonal_win(board, player)
 
 # Step 12 - is_draw (not yet solved)
 # TODO: implement
