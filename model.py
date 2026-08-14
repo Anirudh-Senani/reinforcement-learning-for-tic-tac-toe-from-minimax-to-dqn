@@ -311,31 +311,19 @@ def minimax_terminal_score(status):
 def minimax_value(board, player):
     """Return the minimax value of `board` with `player` to move."""
     # TODO: terminal -> minimax_terminal_score; else max (X) / min (O) over recursive child values
-    def minimax(board, player, memo=None):
-        if memo is None:
-            memo = {}
 
-        key = (board.tobytes(), player)
-        if key in memo:
-            return memo[key]
+    status = get_game_status(board)
+    if status in {'X_win', 'O_win', 'draw'}:
+        return minimax_terminal_score(status)
 
-        status = get_game_status(board)
-        if status in {'X_win', 'O_win', 'draw'}:
-            return minimax_terminal_score(status)
+    child_values = [minimax_value(
+                place_move(board, row, col, player),
+                switch_player(player),
+            )
+        for row, col in get_legal_moves(board)]
 
+    value = max(child_values) if player==1 else min(child_values)
 
-        child_values = [minimax(
-                    place_move(board, row, col, player),
-                    switch_player(player),
-                    memo
-                )
-            for row, col in get_legal_moves(board)]
-
-        value = max(child_values) if player==1 else min(child_values)
-        memo[key] = value
-
-        return value
-    value = minimax(board, player)
     return value
 
 # Step 25 - minimax_recursive (not yet solved)
