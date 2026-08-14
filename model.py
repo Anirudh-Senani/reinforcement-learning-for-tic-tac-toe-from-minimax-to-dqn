@@ -336,7 +336,6 @@ def minimax_value(board, player):
 
         return value
     value = minimax(board, player)
-    print(value)
     return value
 
 # Step 25 - minimax_recursive (not yet solved)
