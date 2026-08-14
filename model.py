@@ -191,7 +191,7 @@ def play_interactive_game():
         player = switch_player(player)
         status = get_game_status(board)
 
-        if status in ('X_wins', 'O_wins', ' draw'):
+        if status in ('X_win', 'O_win', 'draw'):
             break
     print_board(board)
     return status
@@ -241,8 +241,28 @@ def random_move_agent(board, player, rng):
     # TODO: sample a uniformly random legal move using rng and return it as (row, col)
     return tuple(rng.choice(get_legal_moves(board)).tolist())
 
-# Step 20 - play_random_vs_random_game (not yet solved)
-# TODO: implement
+# Step 20 - play_random_vs_random_game
+def play_random_vs_random_game(rng):
+    """Simulate one full random-vs-random game and return the final status."""
+    # TODO: loop until terminal, alternating random moves between X and O
+    player = 1
+    board = create_empty_board()
+    status = 'ongoing'
+    while True:
+        row, col = random_move_agent(board, player, rng)
+        try:
+            # print_board(board)
+            board = place_move(board, row, col, player)
+        except ValueError:
+            continue
+        player = switch_player(player)
+        status = get_game_status(board)
+
+        if status in ('X_win', 'O_win', ' draw'):
+            break
+
+    # print_board(board)
+    return status
 
 # Step 21 - play_random_vs_random_matches (not yet solved)
 # TODO: implement
