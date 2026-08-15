@@ -395,8 +395,64 @@ def minimax_best_move(board, player):
     best_score, best_move = minimax_max_min_step(board, player)
     return best_move
 
-# Step 28 - minimax_alpha_beta (not yet solved)
-# TODO: implement
+# Step 28 - minimax_alpha_beta
+import numpy as np
+
+def minimax_alpha_beta(board, player, alpha, beta):
+    """Return (best_score, best_move) for `player` using alpha-beta pruning."""
+    # TODO: search the game tree with alpha-beta pruning and return (score, move)
+    def minimax(board, player, alpha, beta, memo=None, coord=None):
+        if memo is None:
+            memo = {}
+
+        # print(memo)
+        key = (board.tobytes(), player)
+        if key in memo:
+            return memo[key]
+
+        status = get_game_status(board)
+        if status in {'X_win', 'O_win', 'draw'}:
+            value = (minimax_terminal_score(status), coord)
+            return value
+
+        if player == 1:
+            value = (-float('inf'), (None,None))
+            for row, col in get_legal_moves(board):
+                value = max(value, (minimax(
+                            place_move(board, row, col, player),
+                            switch_player(player),
+                            alpha,
+                            beta,
+                            memo,
+                            (row, col)
+                        )[0], (row, col)), key=lambda x: x[0])
+
+                alpha = max(alpha, value[0])
+                if alpha >= beta:
+                    break
+
+            memo[key] = value
+            return value
+
+        value = (float('inf'), (None,None))
+        for row, col in get_legal_moves(board):
+            value = min(value, (minimax(
+                        place_move(board, row, col, player),
+                        switch_player(player),
+                        alpha,
+                        beta,
+                        memo,
+                        (row, col)
+                    )[0], (row, col)), key=lambda x: x[0])
+
+            beta = min(beta, value[0])
+            if alpha >= beta:
+                break
+
+        memo[key] = value
+        return value
+
+    return minimax(board, player, alpha, beta)
 
 # Step 29 - play_minimax_vs_random_matches (not yet solved)
 # TODO: implement
