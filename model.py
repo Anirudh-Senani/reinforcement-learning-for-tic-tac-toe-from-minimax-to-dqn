@@ -396,12 +396,10 @@ def minimax_best_move(board, player):
     return best_move
 
 # Step 28 - minimax_alpha_beta
-import numpy as np
-
 def minimax_alpha_beta(board, player, alpha, beta):
     """Return (best_score, best_move) for `player` using alpha-beta pruning."""
     # TODO: search the game tree with alpha-beta pruning and return (score, move)
-    def minimax(board, player, alpha, beta, memo=None, coord=None):
+    def minimax(board, player, alpha, beta, memo=None):
         if memo is None:
             memo = {}
 
@@ -412,50 +410,82 @@ def minimax_alpha_beta(board, player, alpha, beta):
 
         status = get_game_status(board)
         if status in {'X_win', 'O_win', 'draw'}:
-            value = (minimax_terminal_score(status), coord)
-            return value
+            return minimax_terminal_score(status), None
 
         if player == 1:
+            fully_searched = True
             value = (-float('inf'), (None,None))
             for row, col in get_legal_moves(board):
-                value = max(value, (minimax(
+                child_value, _ = minimax(
                             place_move(board, row, col, player),
                             switch_player(player),
                             alpha,
                             beta,
-                            memo,
-                            (row, col)
-                        )[0], (row, col)), key=lambda x: x[0])
+                            memo
+                        )
+
+                if child_value > value[0]:
+                    value = (child_value, (row, col))
 
                 alpha = max(alpha, value[0])
                 if alpha >= beta:
+                    fully_searched = False
                     break
 
-            memo[key] = value
+            if fully_searched:
+                memo[key] = value
             return value
 
         value = (float('inf'), (None,None))
+        fully_searched = True
         for row, col in get_legal_moves(board):
-            value = min(value, (minimax(
+            child_value, _ = minimax(
                         place_move(board, row, col, player),
                         switch_player(player),
                         alpha,
                         beta,
-                        memo,
-                        (row, col)
-                    )[0], (row, col)), key=lambda x: x[0])
+                        memo
+                    )
+            
+            if child_value < value[0]:
+                value = (child_value, (row, col))
 
             beta = min(beta, value[0])
             if alpha >= beta:
+                fully_searched = False
                 break
 
-        memo[key] = value
+        if fully_searched:
+            memo[key] = value
         return value
 
     return minimax(board, player, alpha, beta)
 
-# Step 29 - play_minimax_vs_random_matches (not yet solved)
-# TODO: implement
+# Step 29 - play_minimax_vs_random_matches
+def play_minimax_vs_random_matches(n_games, minimax_plays_x, rng):
+    # TODO: run n_games of minimax vs random and return aggregated outcome rates.
+    outcomes = []
+    for _ in range(n_games):
+        board = create_empty_board()
+        player = 1
+        status = 'ongoing'
+        while status not in ('X_win', 'O_win', 'draw'):
+            if minimax_plays_x and player==1:
+                score, move = minimax_alpha_beta(board, player, -10, 10)
+            elif (not minimax_plays_x) and player==0:
+                score, move = minimax_alpha_beta(board, player, -10, 10)
+            elif (not minimax_plays_x) and player==1:
+                move = random_move_agent(board, player, rng)
+            elif minimax_plays_x and player==0:
+                move = random_move_agent(board, player, rng)
+            board = place_move(board, move[0], move[1], player)
+            status = get_game_status(board)
+            player = switch_player(player)
+        outcomes.append(status)
+
+    print(outcomes)
+
+    return compute_outcome_rates(outcomes)
 
 # Step 30 - play_minimax_vs_minimax_matches (not yet solved)
 # TODO: implement
