@@ -687,10 +687,10 @@ def episode_apply_action(board, action, current_player, agent_player):
     col = action%3
 
     next_board = place_move(board, row, col, current_player)
-    status = get_game_status(next_board)
-    done = status in {'X_win', 'O_win', 'draw'}
     next_player = switch_player(current_player)
+    status = get_game_status(next_board)
     reward = tic_tac_toe_reward(status, agent_player)
+    done = status in {'X_win', 'O_win', 'draw'}
 
     return dict(
         next_board=next_board,
