@@ -518,8 +518,20 @@ def encode_board_state_key(board):
     board = np.where(board==-1, 2, board)
     return "".join(map(str, board.tolist()))
 
-# Step 32 - canonical_board_key (not yet solved)
-# TODO: implement
+# Step 32 - canonical_board_key
+def canonical_board_key(board):
+    # TODO: return the lex-smallest encoded key over all 8 symmetries of the board.
+    keys = []
+    keys.append(encode_board_state_key(board))
+    keys.append(encode_board_state_key(board.T))
+    keys.append(encode_board_state_key(np.rot90(board, 1)))
+    keys.append(encode_board_state_key(np.rot90(board, 2)))
+    keys.append(encode_board_state_key(np.rot90(board, 1)))
+    keys.append(encode_board_state_key(np.fliplr(board)))
+    keys.append(encode_board_state_key(np.flipud(board)))
+    keys.append(encode_board_state_key(np.fliplr(np.flipud(board)).T))
+
+    return min(keys)
 
 # Step 33 - initialize_q_table (not yet solved)
 # TODO: implement
