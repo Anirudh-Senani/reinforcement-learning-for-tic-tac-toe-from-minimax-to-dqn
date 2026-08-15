@@ -700,8 +700,20 @@ def episode_apply_action(board, action, current_player, agent_player):
         done=done
     )
 
-# Step 51 - episode_apply_q_update (not yet solved)
-# TODO: implement
+# Step 51 - episode_apply_q_update
+def episode_apply_q_update(q_table, state_key, action, reward, next_board, done, alpha, gamma):
+    """Compute the TD target (terminal or nonterminal) and apply the Q-learning update."""
+    # TODO: branch on done, build the appropriate target, then call the update helper.
+    if done:
+        td = q_learning_terminal_target(reward)
+    else:
+        next_state_key = canonical_board_key(next_board)
+        # next_legal_actions = [row*3+col for row,col in get_legal_moves(next_board)]
+        next_legal_actions = get_legal_moves(next_board)
+        td = q_learning_nonterminal_target(reward, gamma, q_table, next_state_key, next_legal_actions)
+
+    q_val = q_learning_update(q_table, state_key, action, td, alpha)
+    return q_val
 
 # Step 52 - episode_check_terminate (not yet solved)
 # TODO: implement
