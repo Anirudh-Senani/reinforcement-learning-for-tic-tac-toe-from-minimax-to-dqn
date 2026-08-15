@@ -471,19 +471,19 @@ def play_minimax_vs_random_matches(n_games, minimax_plays_x, rng):
         status = 'ongoing'
         while status not in ('X_win', 'O_win', 'draw'):
             if minimax_plays_x and player==1:
-                score, move = minimax_alpha_beta(board, player, -10, 10)
-            elif (not minimax_plays_x) and player==0:
-                score, move = minimax_alpha_beta(board, player, -10, 10)
+                # score, move = minimax_alpha_beta(board, player, -10, 10)
+                move = minimax_best_move(board, player)
+            elif (not minimax_plays_x) and player==-1:
+                # score, move = minimax_alpha_beta(board, player, -10, 10)
+                move = minimax_best_move(board, player)
             elif (not minimax_plays_x) and player==1:
                 move = random_move_agent(board, player, rng)
-            elif minimax_plays_x and player==0:
+            elif minimax_plays_x and player==-1:
                 move = random_move_agent(board, player, rng)
             board = place_move(board, move[0], move[1], player)
             status = get_game_status(board)
             player = switch_player(player)
         outcomes.append(status)
-
-    print(outcomes)
 
     return compute_outcome_rates(outcomes)
 
