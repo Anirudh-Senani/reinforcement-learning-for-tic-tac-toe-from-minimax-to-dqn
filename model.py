@@ -715,8 +715,11 @@ def episode_apply_q_update(q_table, state_key, action, reward, next_board, done,
     q_val = q_learning_update(q_table, state_key, action, td, alpha)
     return q_val
 
-# Step 52 - episode_check_terminate (not yet solved)
-# TODO: implement
+# Step 52 - episode_check_terminate
+def episode_check_terminate(status):
+    """Return True if status is terminal (win or draw), else False."""
+    # TODO: return True when status indicates the episode should end
+    return status in {'X_win', 'O_win', 'draw'}
 
 # Step 53 - train_q_learning_agent (not yet solved)
 # TODO: implement
