@@ -653,8 +653,14 @@ def q_learning_terminal_target(reward):
     # TODO: return the terminal TD target given the observed reward.
     return reward
 
-# Step 47 - q_learning_update (not yet solved)
-# TODO: implement
+# Step 47 - q_learning_update
+def q_learning_update(q_table, state_key, action, target, alpha):
+    """Apply Q(s,a) <- Q(s,a) + alpha * (target - Q(s,a)) and return the new value."""
+    # TODO: read current Q via get_q_value, move toward target by alpha, write back with set_q_value
+    q_val = get_q_value(q_table, state_key, action)
+    q_val += alpha*(target - q_val)
+    set_q_value(q_table, state_key, action, q_val)
+    return q_val
 
 # Step 48 - episode_reset_game (not yet solved)
 # TODO: implement
