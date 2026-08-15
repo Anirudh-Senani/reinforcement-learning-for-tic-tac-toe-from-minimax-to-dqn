@@ -615,8 +615,25 @@ def random_tie_break_argmax(values, candidates, rng):
     ind = rng.choice([i for i in range(len(values)) if values[i]==max_val])
     return candidates[ind]
 
-# Step 44 - tic_tac_toe_reward (not yet solved)
-# TODO: implement
+# Step 44 - tic_tac_toe_reward
+def tic_tac_toe_reward(game_status, agent_player):
+    """Return scalar reward from the agent's perspective.
+
+    game_status: one of 'X_win', 'O_win', 'draw', 'ongoing'.
+    agent_player: +1 for X, -1 for O.
+    """
+    # TODO: map terminal status to +/-1 from the agent's perspective, 0 otherwise
+    if game_status == 'X_win' and agent_player==1:
+        reward = 1.0
+    elif game_status == 'X_win' and agent_player==-1:
+        reward = -1.0
+    elif game_status == 'O_win' and agent_player==-1:
+        reward = 1.0
+    elif game_status == 'O_win' and agent_player==1:
+        reward = -1.0
+    else:
+        reward = 0.0
+    return reward
 
 # Step 45 - q_learning_nonterminal_target (not yet solved)
 # TODO: implement
