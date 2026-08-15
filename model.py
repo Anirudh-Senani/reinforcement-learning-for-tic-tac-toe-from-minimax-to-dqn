@@ -587,8 +587,16 @@ def epsilon_greedy_explore_move(legal_actions, rng):
     else:
         return int(rng.choice(legal_actions))
 
-# Step 41 - epsilon_greedy_select_action (not yet solved)
-# TODO: implement
+# Step 41 - epsilon_greedy_select_action
+def epsilon_greedy_select_action(q_table, state_key, legal_actions, epsilon, rng):
+    """Choose an action via epsilon-greedy over the legal actions."""
+    # TODO: with probability epsilon explore, else pick the greedy legal action.
+    if rng.random() <= epsilon:
+        move = epsilon_greedy_explore_move(legal_actions, rng)
+    else:
+        move = max(legal_actions, key=lambda x: get_q_value(q_table, state_key, x))
+
+    return move
 
 # Step 42 - greedy_argmax_over_legal_actions (not yet solved)
 # TODO: implement
