@@ -647,8 +647,11 @@ def q_learning_nonterminal_target(reward, gamma, q_table, next_state_key, next_l
         td = reward
     return td
 
-# Step 46 - q_learning_terminal_target (not yet solved)
-# TODO: implement
+# Step 46 - q_learning_terminal_target
+def q_learning_terminal_target(reward):
+    """Return the TD target for a terminal transition."""
+    # TODO: return the terminal TD target given the observed reward.
+    return reward
 
 # Step 47 - q_learning_update (not yet solved)
 # TODO: implement
