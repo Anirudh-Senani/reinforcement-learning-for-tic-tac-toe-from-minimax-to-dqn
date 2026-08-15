@@ -594,7 +594,7 @@ def epsilon_greedy_select_action(q_table, state_key, legal_actions, epsilon, rng
     if rng.random() <= epsilon:
         move = epsilon_greedy_explore_move(legal_actions, rng)
     else:
-        move = max(legal_actions, key=lambda x: get_q_value(q_table, state_key, x))
+        move = greedy_argmax_over_legal_actions(q_table, state_key, legal_actions, rng)
 
     return move
 
