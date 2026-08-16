@@ -807,8 +807,33 @@ def compute_rates(outcomes):
 
     return win_rate/total, loss_rate/total, draw_rate/total
 
-# Step 55 - self_play_episode (not yet solved)
-# TODO: implement
+# Step 55 - self_play_episode
+def self_play_episode(q_table, alpha, gamma, epsilon, rng):
+    """Run one self-play episode and return final_status and a list of transitions."""
+    # TODO: loop until terminal, picking actions with episode_agent_pick_action and applying them
+    board, player = episode_reset_game()
+    transitions = []
+    while True:
+        state_key, action = episode_agent_pick_action(q_table, board, player, epsilon, rng)
+        cur_state = episode_apply_action(board, action, player, player)
+        transitions.append(dict(
+            state_key=state_key,
+            action=action,
+            reward=cur_state['reward'],
+            next_board=cur_state['next_board'],
+            done=cur_state['done'],
+            player=player
+        ))
+
+        player = cur_state['next_player']
+        board = cur_state['next_board']
+        if cur_state['done']:
+            break
+
+    return dict(
+        final_status=cur_state['status'],
+        transitions=transitions
+    )
 
 # Step 56 - flip_board_perspective (not yet solved)
 # TODO: implement
