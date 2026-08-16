@@ -762,8 +762,50 @@ def train_q_learning_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsi
         episode_outcomes=episode_outcomes
     )
 
-# Step 54 - compute_batched_outcome_stats (not yet solved)
-# TODO: implement
+# Step 54 - compute_batched_outcome_stats
+import numpy as np
+
+def compute_batched_outcome_stats(episode_outcomes, batch_size):
+    """Aggregate outcomes into per-batch win/loss/draw rates."""
+    # TODO: group outcomes into chunks of batch_size and compute rates per chunk
+    num_batches = len(episode_outcomes)//batch_size
+    win_rates = []
+    loss_rates = []
+    draw_rates = []
+    for i in range(num_batches):
+        rates = compute_rates(episode_outcomes[i*batch_size:(i+1)*batch_size])
+        win_rates.append(rates[0])
+        loss_rates.append(rates[1])
+        draw_rates.append(rates[2])
+
+    return dict(
+        batch_index = np.arange(num_batches),
+        win_rate=np.asarray(win_rates),
+        loss_rate=np.asarray(loss_rates),
+        draw_rate=np.asarray(draw_rates)
+    )
+
+
+def compute_rates(outcomes):
+    """Return {'x_win_rate','o_win_rate','draw_rate'} from a list of outcome labels."""
+    # TODO: count occurrences of each outcome and divide by total games
+    win_rate = 0
+    loss_rate = 0
+    draw_rate = 0
+    total = 0
+    for out in outcomes:
+        if out == 'win':
+            win_rate += 1
+        elif out == 'loss':
+            loss_rate += 1
+        else:
+            draw_rate += 1
+        total += 1
+
+    if total == 0:
+        total += 1
+
+    return win_rate/total, loss_rate/total, draw_rate/total
 
 # Step 55 - self_play_episode (not yet solved)
 # TODO: implement
