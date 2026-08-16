@@ -843,8 +843,13 @@ def flip_board_perspective(board, current_player):
     # TODO: return a new (3,3) int array expressed from current_player's perspective
     return np.where(board!=0, board//current_player, 0)
 
-# Step 57 - perspective_reward_sign (not yet solved)
-# TODO: implement
+# Step 57 - perspective_reward_sign
+def perspective_reward_sign(reward, acting_player, scoring_player):
+    """Return reward expressed from acting_player's perspective."""
+    # TODO: flip the sign of reward when acting_player and scoring_player differ
+    if acting_player != scoring_player:
+        reward /= -1
+    return reward
 
 # Step 58 - train_q_agent_self_play (not yet solved)
 # TODO: implement
