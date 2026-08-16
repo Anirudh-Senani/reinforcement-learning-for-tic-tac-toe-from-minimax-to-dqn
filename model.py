@@ -721,8 +721,46 @@ def episode_check_terminate(status):
     # TODO: return True when status indicates the episode should end
     return status in {'X_win', 'O_win', 'draw'}
 
-# Step 53 - train_q_learning_agent (not yet solved)
-# TODO: implement
+# Step 53 - train_q_learning_agent
+def train_q_learning_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, decay_rate, opponent_policy, rng):
+    # TODO: run N Q-learning episodes vs opponent_policy, decay epsilon, return q_table and outcomes
+    q_table = initialize_q_table()
+    episode_outcomes = []
+    for ep in range(num_episodes):
+        epsilon = epsilon_decay_schedule(initial_epsilon, ep, min_epsilon, decay_rate)
+        board, player = episode_reset_game()
+        agent_player = 1
+        status = 'ongoing'
+        while True:
+            state_key, action = episode_agent_pick_action(q_table, board, player, epsilon, rng)
+            cur_state = episode_apply_action(board, action, player, agent_player)
+            next_board = cur_state['next_board']
+            status = cur_state['status']
+            reward = cur_state['reward']
+            player = cur_state['next_player']
+            done = cur_state['done']
+
+            if not done:
+                move = opponent_policy(next_board, player, rng)
+                cur_state = episode_apply_action(next_board, move, player, agent_player)
+                next_board = cur_state['next_board']
+                status = cur_state['status']
+                # reward = cur_state['reward']
+                player = cur_state['next_player']
+                done = cur_state['done']
+                # if done:
+                #     break
+
+            episode_apply_q_update(q_table, state_key, action, reward, next_board, done, alpha, gamma)
+            board = next_board
+            if done:
+                break
+        episode_outcomes.append(status)
+
+    return dict(
+        q_table=q_table,
+        episode_outcomes=episode_outcomes
+    )
 
 # Step 54 - compute_batched_outcome_stats (not yet solved)
 # TODO: implement
