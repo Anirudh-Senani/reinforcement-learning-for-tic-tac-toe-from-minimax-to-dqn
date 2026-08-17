@@ -1227,11 +1227,28 @@ def build_target_network_copy(online_params):
         target[key] = online_params[key].copy()
     return target
 
-# Step 79 - compute_target_q_with_target_network (not yet solved)
-# TODO: implement
+# Step 79 - compute_target_q_with_target_network
+import numpy as np
 
-# Step 80 - sync_target_network_periodically (not yet solved)
-# TODO: implement
+def compute_target_q_with_target_network(target_params, batch, gamma):
+    """Compute DQN bootstrap targets r + gamma * max_a' Q_target(s', a')."""
+    # TODO: forward next_states through the target net, mask illegal actions, take max, zero on terminals
+    q_target, _ = mlp_forward_pass(target_params, batch['next_states'])
+    q_target_masked = mask_illegal_actions_neg_inf(q_target, batch['next_legal_masks'])
+    q_target_masked_max = q_target_masked.max(axis=-1)
+    q_target_masked_max = np.where(batch['dones'], 0.0, q_target_masked_max)
+
+    return batch['rewards'] + gamma * q_target_masked_max
+
+# Step 80 - sync_target_network_periodically
+import numpy as np
+
+def sync_target_network_periodically(online_params, target_params, step_count, sync_every_k):
+    """Copy online -> target every sync_every_k steps; otherwise leave target unchanged."""
+    # TODO: refresh target_params from online_params when step_count is a positive multiple of sync_every_k
+    if step_count%sync_every_k == 0 and step_count != 0:
+        target_params = build_target_network_copy(online_params)
+    return target_params
 
 # Step 81 - dqn_select_action (not yet solved)
 # TODO: implement
