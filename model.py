@@ -871,62 +871,350 @@ def train_q_agent_self_play(num_episodes, alpha, gamma, initial_epsilon, min_eps
         episode_outcomes=episode_outcomes
     )
 
-# Step 59 - evaluate_q_agent_vs_random (not yet solved)
-# TODO: implement
+# Step 59 - evaluate_q_agent_vs_random
+def evaluate_q_agent_vs_random(q_table, num_games, rng):
+    """Play num_games between the greedy Q-agent and a random opponent.
 
-# Step 60 - evaluate_q_agent_vs_minimax (not yet solved)
-# TODO: implement
+    Returns a dict with keys 'wins', 'losses', 'draws' (ints) and
+    'win_rate', 'loss_rate', 'draw_rate' (floats), all from the agent's
+    perspective. The agent alternates between playing X and O across games.
+    """
+    # TODO: simulate num_games and tally outcomes from the agent's perspective
+    wins = 0
+    losses = 0
+    draws = 0
 
-# Step 61 - inspect_q_values_for_state (not yet solved)
-# TODO: implement
+    agent = 1
+    for _ in range(num_games):
+        board, _ = episode_reset_game()
+        player = agent
+        status = 'ongoing'
+        while True:
+            state_key = canonical_board_key(flip_board_perspective(board, player))
+            legal_actions = get_legal_moves(board)
+            row, col = greedy_argmax_over_legal_actions(q_table, state_key, legal_actions, rng)
+            board = place_move(board, row, col, player)
+            status = get_game_status(board)
+            done = episode_check_terminate(status)
+            player = switch_player(player)
 
-# Step 62 - serialize_q_table_to_dict (not yet solved)
-# TODO: implement
+            if not done:
+                legal_actions = get_legal_moves(board)
+                row, col = rng.choice(legal_actions)
+                board = place_move(board, row, col, player)
+                status = get_game_status(board)
+                done = episode_check_terminate(status)
+                player = switch_player(player)
+            
+            if done:
+                break
+        
+        reward = tic_tac_toe_reward(status, agent)
+        if reward == 1.0:
+            wins += 1
+        elif reward == -1.0:
+            losses += 1
+        else:
+            draws += 1
+        
+        agent = switch_player(agent)
+    
+    if num_games == 0:
+        num_games += 1
+    
+    return dict(
+        wins=wins,
+        losses=losses,
+        draws=draws,
+        win_rate=wins/num_games,
+        loss_rate=losses/num_games,
+        draw_rate=draws/num_games
+    )
 
-# Step 63 - deserialize_q_table_from_dict (not yet solved)
-# TODO: implement
+# Step 60 - evaluate_q_agent_vs_minimax
+def evaluate_q_agent_vs_minimax(q_table, num_games, rng):
+    # TODO: play num_games matches alternating X/O between Q-agent and minimax, return agent-perspective rates.
+    def pick_action(board, player, agent):
+        if player == agent:
+            state_key = canonical_board_key(flip_board_perspective(board, player))
+            legal_actions = get_legal_moves(board)
+            move = greedy_argmax_over_legal_actions(q_table, state_key, legal_actions, rng)
+        else:
+            legal_actions = get_legal_moves(board)
+            move = minimax_best_move(board, player)
+        return move
 
-# Step 64 - encode_board_flat_length_nine (not yet solved)
-# TODO: implement
 
-# Step 65 - encode_board_one_hot_length_eighteen (not yet solved)
-# TODO: implement
+    wins = 0
+    losses = 0
+    draws = 0
+    agent = 1
+    for _ in range(num_games):
+        board, player = episode_reset_game()
+        status = 'ongoing'
+        while True:
+            row, col = pick_action(board, player, agent)
+            board = place_move(board, row, col, player)
+            status = get_game_status(board)
+            done = episode_check_terminate(status)
+            player = switch_player(player)
 
-# Step 66 - build_mlp_architecture (not yet solved)
-# TODO: implement
+            if not done:
+                row, col = pick_action(board, player, agent)
+                board = place_move(board, row, col, player)
+                status = get_game_status(board)
+                done = episode_check_terminate(status)
+                player = switch_player(player)
 
-# Step 67 - initialize_mlp_parameters (not yet solved)
-# TODO: implement
+            if done:
+                break
 
-# Step 68 - mlp_forward_pass (not yet solved)
-# TODO: implement
+        reward = tic_tac_toe_reward(status, agent)
+        if reward == 1.0:
+            wins += 1
+        elif reward == -1.0:
+            losses += 1
+        else:
+            draws += 1
 
-# Step 69 - mask_illegal_actions_neg_inf (not yet solved)
-# TODO: implement
+        agent = switch_player(agent)
 
-# Step 70 - argmax_action_from_q_values (not yet solved)
-# TODO: implement
+    if num_games == 0:
+        num_games += 1
 
-# Step 71 - mse_loss_on_chosen_action (not yet solved)
-# TODO: implement
+    return dict(
+        x_win_rate=wins/num_games,
+        o_win_rate=losses/num_games,
+        draw_rate=draws/num_games
+    )
 
-# Step 72 - mlp_backward_pass (not yet solved)
-# TODO: implement
+# Step 61 - inspect_q_values_for_state
+import numpy as np
 
-# Step 73 - adam_update_step (not yet solved)
-# TODO: implement
+def inspect_q_values_for_state(q_table, board, current_player):
+    """Print the board and Q-values for all 9 cells; return a length-9 array."""
+    # TODO: look up Q-values for every cell of the board and pretty-print them.
+    state_key = canonical_board_key(board)
+    q_vals = []
+    print_board(board)
+    for i in range(3):
+        row_str = ""
+        for j in range(3):
+            val = get_q_value(q_table, state_key, (i,j))
+            row_str += f" {val:+.2f}"
+            q_vals.append(val)
+        print(row_str.strip())
+    return np.asarray(q_vals)
 
-# Step 74 - create_replay_buffer (not yet solved)
-# TODO: implement
+# Step 62 - serialize_q_table_to_dict
+def serialize_q_table_to_dict(q_table):
+    """Convert a Q-table (str -> np.ndarray shape (9,)) into a plain dict (str -> list of floats)."""
+    # TODO: convert each numpy array value into a plain Python list of floats
+    return {key: val.astype(float).tolist() for key, val in q_table.items()}
 
-# Step 75 - append_transition_to_buffer (not yet solved)
-# TODO: implement
+# Step 63 - deserialize_q_table_from_dict
+import numpy as np
 
-# Step 76 - cap_buffer_size_drop_oldest (not yet solved)
-# TODO: implement
+def deserialize_q_table_from_dict(serialized):
+    """Rebuild a Q-table (state_key -> np.ndarray shape (9,)) from a plain dict."""
+    # TODO: convert each list value back into a numpy float array of shape (9,)
+    return {key: np.asarray(val, dtype=np.float64) for key, val in serialized.items()}
 
-# Step 77 - sample_minibatch_from_buffer (not yet solved)
-# TODO: implement
+# Step 64 - encode_board_flat_length_nine
+import numpy as np
+
+def encode_board_flat_length_nine(board, current_player):
+    """Encode a 3x3 board as a length-9 float32 vector from current_player's view."""
+    # TODO: relabel pieces so own=+1, opponent=-1, empty=0, then flatten to (9,) float32
+    return flip_board_perspective(board, current_player).flatten().astype(np.float32)
+
+# Step 65 - encode_board_one_hot_length_eighteen
+import numpy as np
+
+def encode_board_one_hot_length_eighteen(board, current_player):
+    """Encode a 3x3 board as a length-18 two-channel one-hot vector."""
+    # TODO: build own-piece and opponent-piece masks, flatten and concatenate
+    opponent_player = switch_player(current_player)
+    current_pieces = np.where(board==current_player, 1.0, 0.0).flatten()
+    opponent_pieces = np.where(board==opponent_player, 1.0, 0.0).flatten()
+
+    return np.concatenate([current_pieces, opponent_pieces]).astype(np.float32)
+
+# Step 66 - build_mlp_architecture
+def build_mlp_architecture(input_dim, hidden_dim, output_dim=9):
+    # TODO: return a dict describing input_dim -> hidden_dim -> output_dim layer sizes.
+    return dict(
+        input_dim=input_dim,
+        hidden_dim=hidden_dim,
+        output_dim=output_dim
+    )
+
+# Step 67 - initialize_mlp_parameters
+def initialize_mlp_parameters(architecture, seed=0):
+    """Initialize MLP weights with He init and zero biases.
+
+    architecture: dict from build_mlp_architecture with input_dim, hidden_dim, output_dim.
+    seed: int seed for numpy RNG.
+    Returns dict with keys 'W1', 'b1', 'W2', 'b2'.
+    """
+    # TODO: sample weights with He init and zero the biases
+    # rng = np.random.default_rng(seed)
+    np.random.seed(seed)
+    d_in = architecture['input_dim']
+    d_h = architecture['hidden_dim']
+    d_out = architecture['output_dim']
+
+    # W1 = rng.normal(loc=0.0, scale=(2/d_in)**0.5, size=(d_in, d_h))
+    W1 = np.random.normal(loc=0.0, scale=(2/d_in)**0.5, size=(d_in, d_h))
+    b1 = np.zeros(d_h)
+    # W2 = rng.normal(loc=0.0, scale=(2/d_h)**0.5, size=(d_h, d_out))
+    W2 = np.random.normal(loc=0.0, scale=(2/d_h)**0.5, size=(d_h, d_out))
+    b2 = np.zeros(d_out)
+
+    return dict(
+        W1=W1,
+        b1=b1,
+        W2=W2,
+        b2=b2
+    )
+
+# Step 68 - mlp_forward_pass
+def mlp_forward_pass(params, x):
+    """Forward pass through a two-layer MLP with ReLU hidden activation.
+
+    Args:
+        params: dict with keys 'W1', 'b1', 'W2', 'b2'.
+        x: np.ndarray of shape (batch, input_dim).
+
+    Returns:
+        (q_values, cache) where q_values has shape (batch, output_dim) and
+        cache is a dict with keys {'x', 'z1', 'h1', 'q'}.
+    """
+    # TODO: compute z1 = x W1 + b1, h1 = ReLU(z1), q = h1 W2 + b2, cache intermediates.
+    z1 = x @ params['W1'] + params['b1']
+    h1 = np.maximum(z1, 0.0)
+    q = h1 @ params['W2'] + params['b2']
+
+    return q,dict(x=x, z1=z1, h1=h1, q=q)
+
+# Step 69 - mask_illegal_actions_neg_inf
+import numpy as np
+
+def mask_illegal_actions_neg_inf(q_values, legal_action_mask):
+    """Return a copy of q_values with illegal entries set to -inf."""
+    # TODO: replace q-values at positions where the mask is False with -inf
+    return np.where(legal_action_mask, q_values, -np.inf)
+
+# Step 70 - argmax_action_from_q_values
+import numpy as np
+
+def argmax_action_from_q_values(masked_q_values):
+    """Return the index of the largest entry in masked_q_values as an int."""
+    # TODO: pick the action index with the highest (masked) Q-value
+    return int(np.argmax(masked_q_values))
+
+# Step 71 - mse_loss_on_chosen_action
+import numpy as np
+
+def mse_loss_on_chosen_action(predicted_q, action_indices, target_q):
+    """MSE between Q(s, a_taken) and the bootstrapped target Q."""
+    # TODO: gather one Q-value per row using action_indices, then mean squared error vs target_q.
+    return float(np.mean((predicted_q[np.arange(predicted_q.shape[0]),action_indices] - target_q)**2))
+
+# Step 72 - mlp_backward_pass
+def mlp_backward_pass(params, cache, action_indices, target_q):
+    """Backprop MSE-on-chosen-action loss through the MLP and return param gradients."""
+    # TODO: compute gradients dW1, db1, dW2, db2 for the MSE-on-chosen-action loss
+    batch_size = action_indices.shape[0]
+    dres = 2 * (cache['q'][np.arange(batch_size), action_indices] - target_q)/batch_size
+    dq = np.zeros_like(cache['q'])
+    dq[np.arange(batch_size), action_indices] = 1.0
+    dq *= dres[:,None]
+    dW2 = cache['h1'].T @ dq
+    db2 = dq.sum(axis=0)
+    dh1 = dq @ params['W2'].T
+    dz1 = np.where(cache['z1']>0.0, dh1, 0.0)
+    dW1 = cache['x'].T @ dz1
+    db1 = dz1.sum(axis=0)
+
+    return dict(
+        W1=dW1,
+        b1=db1,
+        W2=dW2,
+        b2=db2
+    )
+
+# Step 73 - adam_update_step
+import numpy as np
+
+def adam_update_step(params, grads, adam_state, learning_rate=1e-3, beta1=0.9, beta2=0.999, eps=1e-8):
+    # TODO: perform one Adam step; update adam_state's moments and step counter, return (new_params, adam_state).
+    if not adam_state:
+        adam_state['m'] = {}
+        adam_state['v'] = {}
+        adam_state['t'] = 0
+        for key in params:
+            adam_state['m'][key] = np.zeros_like(params[key])
+            adam_state['v'][key] = np.zeros_like(params[key])
+
+    adam_state['t'] += 1
+
+    for key in params:
+        adam_state['m'][key] = adam_state['m'][key] * beta1 + grads[key]*(1-beta1)
+        adam_state['v'][key] = adam_state['v'][key] * beta2 + (grads[key]**2)*(1-beta2)
+
+        m_t = adam_state['m'][key]/(1-beta1**adam_state['t'])
+        v_t = adam_state['v'][key]/(1-beta2**adam_state['t'])
+
+        params[key] -= learning_rate * m_t/(np.sqrt(v_t)+eps)
+
+    return params, adam_state
+
+# Step 74 - create_replay_buffer
+from collections import deque
+
+
+def create_replay_buffer(capacity):
+    """Return an empty replay buffer with a fixed maximum capacity."""
+    # TODO: build a dict holding an empty bounded deque and the capacity
+    return dict(
+        data=deque(maxlen=capacity),
+        capacity=capacity
+    )
+
+# Step 75 - append_transition_to_buffer
+def append_transition_to_buffer(buffer, state, action, reward, next_state, done, next_legal_mask):
+    """Append one (s, a, r, s', done, next_legal_mask) transition to the replay buffer."""
+    # TODO: store the transition tuple in buffer['data']
+    buffer['data'].append((state, action, reward, next_state, done, next_legal_mask))
+    return buffer
+
+# Step 76 - cap_buffer_size_drop_oldest
+def cap_buffer_size_drop_oldest(buffer):
+    """Drop oldest transitions until len(buffer['data']) <= buffer['capacity']."""
+    # TODO: pop from the front of buffer['data'] until it fits the capacity.
+    buffer['data'] = buffer['data'][max(len(buffer['data'])-buffer['capacity'],0):]
+    return buffer
+
+# Step 77 - sample_minibatch_from_buffer
+import numpy as np
+
+
+def sample_minibatch_from_buffer(buffer, batch_size, rng):
+    """Draw `batch_size` random transitions from `buffer` and stack fields into arrays."""
+    # TODO: draw a uniformly random minibatch of transitions and stack each field.
+    batch = {}
+    for key in buffer['data'][0]:
+        batch[key+'s'] = []
+
+    for transition in rng.choice(buffer['data'], size=batch_size):
+        for key in transition:
+            batch[key+'s'].append(transition[key])
+
+    for key in batch:
+        batch[key] = np.stack(batch[key])
+
+    return batch
 
 # Step 78 - build_target_network_copy (not yet solved)
 # TODO: implement

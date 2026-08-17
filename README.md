@@ -68,25 +68,25 @@ python scaffold.py
 - [x] **56.** flip_board_perspective
 - [x] **57.** perspective_reward_sign
 - [x] **58.** train_q_agent_self_play
-- [ ] **59.** evaluate_q_agent_vs_random
-- [ ] **60.** evaluate_q_agent_vs_minimax
-- [ ] **61.** inspect_q_values_for_state
-- [ ] **62.** serialize_q_table_to_dict
-- [ ] **63.** deserialize_q_table_from_dict
-- [ ] **64.** encode_board_flat_length_nine
-- [ ] **65.** encode_board_one_hot_length_eighteen
-- [ ] **66.** build_mlp_architecture
-- [ ] **67.** initialize_mlp_parameters
-- [ ] **68.** mlp_forward_pass
-- [ ] **69.** mask_illegal_actions_neg_inf
-- [ ] **70.** argmax_action_from_q_values
-- [ ] **71.** mse_loss_on_chosen_action
-- [ ] **72.** mlp_backward_pass
-- [ ] **73.** adam_update_step
-- [ ] **74.** create_replay_buffer
-- [ ] **75.** append_transition_to_buffer
-- [ ] **76.** cap_buffer_size_drop_oldest
-- [ ] **77.** sample_minibatch_from_buffer
+- [x] **59.** evaluate_q_agent_vs_random
+- [x] **60.** evaluate_q_agent_vs_minimax
+- [x] **61.** inspect_q_values_for_state
+- [x] **62.** serialize_q_table_to_dict
+- [x] **63.** deserialize_q_table_from_dict
+- [x] **64.** encode_board_flat_length_nine
+- [x] **65.** encode_board_one_hot_length_eighteen
+- [x] **66.** build_mlp_architecture
+- [x] **67.** initialize_mlp_parameters
+- [x] **68.** mlp_forward_pass
+- [x] **69.** mask_illegal_actions_neg_inf
+- [x] **70.** argmax_action_from_q_values
+- [x] **71.** mse_loss_on_chosen_action
+- [x] **72.** mlp_backward_pass
+- [x] **73.** adam_update_step
+- [x] **74.** create_replay_buffer
+- [x] **75.** append_transition_to_buffer
+- [x] **76.** cap_buffer_size_drop_oldest
+- [x] **77.** sample_minibatch_from_buffer
 - [ ] **78.** build_target_network_copy
 - [ ] **79.** compute_target_q_with_target_network
 - [ ] **80.** sync_target_network_periodically
