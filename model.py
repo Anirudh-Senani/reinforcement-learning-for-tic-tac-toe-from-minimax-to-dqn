@@ -851,8 +851,25 @@ def perspective_reward_sign(reward, acting_player, scoring_player):
         reward /= -1
     return reward
 
-# Step 58 - train_q_agent_self_play (not yet solved)
-# TODO: implement
+# Step 58 - train_q_agent_self_play
+def train_q_agent_self_play(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, decay_rate, rng):
+    # TODO: run num_episodes of self-play, applying Q-learning updates with perspective flipping.
+    q_table = initialize_q_table()
+    episode_outcomes = []
+    for ep in range(num_episodes):
+        epsilon = epsilon_decay_schedule(initial_epsilon, ep, min_epsilon, decay_rate)
+        self_play_ep = self_play_episode(q_table, alpha, gamma, epsilon, rng)
+        episode_outcomes.append(self_play_ep['final_status'])
+        for transit in self_play_ep['transitions']:
+            player = transit['player']
+            reward = perspective_reward_sign(transit['reward'], player, 1)
+            next_board = flip_board_perspective(transit['next_board'], player)
+            episode_apply_q_update(q_table, transit['state_key'], transit['action'], reward, next_board, transit['done'], alpha, gamma)
+
+    return dict(
+        q_table=q_table,
+        episode_outcomes=episode_outcomes
+    )
 
 # Step 59 - evaluate_q_agent_vs_random (not yet solved)
 # TODO: implement
