@@ -1250,11 +1250,32 @@ def sync_target_network_periodically(online_params, target_params, step_count, s
         target_params = build_target_network_copy(online_params)
     return target_params
 
-# Step 81 - dqn_select_action (not yet solved)
-# TODO: implement
+# Step 81 - dqn_select_action
+def dqn_select_action(online_params, state, legal_mask, epsilon, rng):
+    """Epsilon-greedy action index over the legal moves."""
+    # TODO: explore with prob epsilon (random legal action) else argmax of masked Q-values
+    if rng.random() <= epsilon:
+        action = int(rng.choice(np.arange(legal_mask.shape[0])[legal_mask]))
+    else:
+        q_values, _ = mlp_forward_pass(online_params, state)
+        q_values = mask_illegal_actions_neg_inf(q_values, legal_mask)
+        action = argmax_action_from_q_values(q_values)
 
-# Step 82 - dqn_train_step (not yet solved)
-# TODO: implement
+    return action
+
+# Step 82 - dqn_train_step
+def dqn_train_step(online_params, target_params, adam_state, buffer, batch_size, gamma, lr, rng):
+    """Run one DQN minibatch update. Return (online_params, adam_state, loss)."""
+    # TODO: sample -> targets -> forward -> loss -> backward -> adam step
+    batch = sample_minibatch_from_buffer(buffer, batch_size, rng)
+    targets = compute_target_q_with_target_network(target_params, batch, gamma)
+    q_vals, cache = mlp_forward_pass(online_params, batch['states'])
+
+    loss = mse_loss_on_chosen_action(q_vals, batch['actions'], targets)
+    grads = mlp_backward_pass(online_params, cache, batch['actions'], targets)
+    online_params, adam_state = adam_update_step(online_params, grads, adam_state, lr)
+
+    return online_params, adam_state, loss
 
 # Step 83 - train_dqn_agent (not yet solved)
 # TODO: implement
