@@ -1196,7 +1196,7 @@ def cap_buffer_size_drop_oldest(buffer):
     if isinstance(buffer['data'], list):
         buffer['data'] = buffer['data'][max(len(buffer['data'])-buffer['capacity'],0):]
     else:
-        for _ in range(max(len(buffer['data']-buffer['capacity']),0)):
+        for _ in range(max(len(buffer['data'])-buffer['capacity'],0)):
             buffer['data'].popleft()
 
     return buffer
