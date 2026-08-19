@@ -1432,8 +1432,49 @@ def sarsa_on_policy_update(q_table, state_key, action, reward, next_state_key, n
     set_q_value(q_table, state_key, action, q_val)
     return q_table
 
-# Step 86 - train_sarsa_agent (not yet solved)
-# TODO: implement
+# Step 86 - train_sarsa_agent
+def train_sarsa_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, decay_rate, opponent_policy, rng):
+    # TODO: run num_episodes of on-policy SARSA vs opponent_policy; return q_table and outcomes
+    episode_outcomes = []
+    q_table = initialize_q_table()
+    for ep in range(num_episodes):
+        epsilon = epsilon_decay_schedule(initial_epsilon, ep, min_epsilon, decay_rate)
+        board, player = episode_reset_game()
+        agent_player = 1
+        prev_state_key, prev_action = None, None
+        prev_reward = 0
+        prev_done = False
+
+        while True:
+            state_key, action = episode_agent_pick_action(q_table, board, player, epsilon, rng)
+
+            if prev_state_key is not None and prev_action is not None:
+                q_table = sarsa_on_policy_update(q_table, prev_state_key, prev_action, cur_state['reward'], state_key, action, cur_state['done'], alpha, gamma)
+
+            cur_state = episode_apply_action(board, action, player, agent_player)
+            prev_state_key, prev_action = state_key, action
+            prev_reward = cur_state['reward']
+            prev_done = cur_state['done']
+
+            if not cur_state['done']:
+                board = cur_state['next_board']
+                player = cur_state['next_player']
+                action = opponent_policy(board, player, rng)
+                cur_state = episode_apply_action(board, action, player, agent_player)
+
+            board = cur_state['next_board']
+            player = cur_state['next_player']
+            if cur_state['done']:
+                break
+
+        if prev_state_key is not None and prev_action is not None:
+            q_table = sarsa_on_policy_update(q_table, prev_state_key, prev_action, cur_state['reward'], state_key, action, cur_state['done'], alpha, gamma)
+        episode_outcomes.append(cur_state['status'])
+
+        return dict(
+            q_table=q_table,
+            episode_outcomes=episode_outcomes
+        )
 
 # Step 87 - reinforce_log_prob_of_action (not yet solved)
 # TODO: implement
