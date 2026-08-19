@@ -1418,8 +1418,19 @@ def compare_dqn_tabular_random_minimax(dqn_artifacts, q_table, num_games=200):
 
     return outcome
 
-# Step 85 - sarsa_on_policy_update (not yet solved)
-# TODO: implement
+# Step 85 - sarsa_on_policy_update
+def sarsa_on_policy_update(q_table, state_key, action, reward, next_state_key, next_action, done, alpha, gamma):
+    """Apply one on-policy SARSA update and return the updated q_table."""
+    # TODO: compute the SARSA TD target using the next action actually taken, then update Q(s, a).
+    q_val = get_q_value(q_table, state_key, action)
+    next_q_val = get_q_value(q_table, next_state_key, next_action)
+    if done:
+        q_val += alpha * reward
+    else:
+        q_val += alpha * (reward + gamma * next_q_val - q_val)
+
+    set_q_value(q_table, state_key, action, q_val)
+    return q_table
 
 # Step 86 - train_sarsa_agent (not yet solved)
 # TODO: implement
