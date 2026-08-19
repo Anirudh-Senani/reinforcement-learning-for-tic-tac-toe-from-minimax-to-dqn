@@ -1316,7 +1316,14 @@ def train_dqn_agent(num_episodes, hidden_dim=64, gamma=0.99, lr=1e-3, batch_size
             # next_state = encode_board_one_hot_length_eighteen(cur_state['next_board'], player)
             next_state = encode_board_flat_length_nine(cur_state['next_board'], player)
             next_legal_mask = build_legal_mask(cur_state['next_board'])
-            buffer = append_transition_to_buffer(buffer, state, action, cur_state['reward'], next_state, cur_state['done'], next_legal_mask)
+            buffer['data'].append(dict(
+                state=state,
+                action=action,
+                reward=cur_state['reward'],
+                next_state=next_state,
+                done=cur_state['done'],
+                next_legal_mask=next_legal_mask
+                ))
             buffer = cap_buffer_size_drop_oldest(buffer)
 
             player = cur_state['next_player']
