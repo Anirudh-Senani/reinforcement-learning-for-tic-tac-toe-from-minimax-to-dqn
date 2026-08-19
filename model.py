@@ -1345,8 +1345,78 @@ def train_dqn_agent(num_episodes, hidden_dim=64, gamma=0.99, lr=1e-3, batch_size
         architecture=architecture
     )
 
-# Step 84 - compare_dqn_tabular_random_minimax (not yet solved)
-# TODO: implement
+# Step 84 - compare_dqn_tabular_random_minimax
+def compare_dqn_tabular_random_minimax(dqn_artifacts, q_table, num_games=200):
+    """Round-robin evaluation among DQN, tabular Q, random, and minimax agents."""
+    # TODO: play num_games for each of the six pairings, alternating X, and report rates
+    rng = np.random.default_rng()
+
+    def get_action(board, player, agent_type):
+        legal_moves = [row*3+col for row,col in get_legal_moves(board)]
+        match agent_type:
+            case "random":
+                return rng.choice(legal_moves)
+            case "minimax":
+                row, col = minimax_best_move(board, player)
+                return row*3 + col
+            case "tabular":
+                state_key = canonical_board_key(flip_board_perspective(board, player))
+                return greedy_argmax_over_legal_actions(q_table, state_key, legal_moves, rng)
+            case "dqn":
+                if dqn_artifacts['architecture']['input_dim'] == 18:
+                    state = encode_board_one_hot_length_eighteen(board, player)
+                else:
+                    state = encode_board_flat_length_nine(board, player)
+                legal_mask = build_legal_mask(board, dqn_artifacts['architecture']['input_dim'])
+                return dqn_select_action(dqn_artifacts['online_params'], state, legal_mask, -1.0, rng)
+
+    agents = ['dqn', 'tabular', 'random', 'minimax']
+
+    outcome = {}
+    for i in range(4):
+        agenti = agents[i]
+        for j in range(i+1,4):
+            agentj = agents[j]
+            result = {'wins':0, 'draws':0, 'losses':0}
+            player = 1
+            agent_player = player
+
+            for _ in range(num_games):
+                board, _ = episode_reset_game()
+                status = 'ongoing'
+                while True:
+                    action = get_action(board, player, agenti)
+                    cur_state = episode_apply_action(board, action, player, agent_player)
+
+                    if not cur_state['done']:
+                        board = cur_state['next_board']
+                        player = cur_state['next_player']
+                        action = get_action(board, player, agentj)
+                        cur_state = episode_apply_action(board, action, player, agent_player)
+
+                    board = cur_state['next_board']
+                    player = cur_state['next_player']
+                    if cur_state['done']:
+                        break
+
+                if cur_state['reward'] == 1:
+                    result['wins']+=1
+                elif cur_state['reward'] == -1:
+                    result['losses']+=1
+                else:
+                    result['draws']+=1
+
+                agent_player = switch_player(agent_player)
+                player = agent_player
+
+            if num_games > 0:
+                result['wins']/=num_games
+                result['draws']/=num_games
+                result['losses']/=num_games
+
+            outcome[agenti+"_vs_"+agentj] = result
+
+    return outcome
 
 # Step 85 - sarsa_on_policy_update (not yet solved)
 # TODO: implement
