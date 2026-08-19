@@ -1193,7 +1193,12 @@ def append_transition_to_buffer(buffer, state, action, reward, next_state, done,
 def cap_buffer_size_drop_oldest(buffer):
     """Drop oldest transitions until len(buffer['data']) <= buffer['capacity']."""
     # TODO: pop from the front of buffer['data'] until it fits the capacity.
-    buffer['data'] = buffer['data'][max(len(buffer['data'])-buffer['capacity'],0):]
+    if isinstance(buffer['data'], list):
+        buffer['data'] = buffer['data'][max(len(buffer['data'])-buffer['capacity'],0):]
+    else:
+        for _ in range(max(len(buffer['data']-buffer['capacity']),0)):
+            buffer['data'].popleft()
+
     return buffer
 
 # Step 77 - sample_minibatch_from_buffer
@@ -1277,8 +1282,60 @@ def dqn_train_step(online_params, target_params, adam_state, buffer, batch_size,
 
     return online_params, adam_state, loss
 
-# Step 83 - train_dqn_agent (not yet solved)
-# TODO: implement
+# Step 83 - train_dqn_agent
+def build_legal_mask(board):
+    legal_moves = [row*3+col for row, col in get_legal_moves(board)]
+    legal_mask = np.full(9, False)
+    legal_mask[legal_moves] = True
+    # legal_mask = np.asarray(legal_mask.tolist() + legal_mask.tolist())
+    return legal_mask
+
+
+def train_dqn_agent(num_episodes, hidden_dim=64, gamma=0.99, lr=1e-3, batch_size=64, buffer_capacity=10000, sync_every_k=200, epsilon_start=1.0, epsilon_end=0.05, seed=0):
+    """Full DQN self-play training loop. Returns dict with online_params,
+    target_params, loss_history, reward_history, architecture."""
+    # TODO: run num_episodes of self-play, store transitions, train with Adam.
+    rng = np.random.default_rng(seed)
+    architecture = build_mlp_architecture(9, hidden_dim)
+    online_params = initialize_mlp_parameters(architecture, seed)
+    target_params = build_target_network_copy(online_params)
+    loss_history = []
+    reward_history = []
+    adam_state = {}
+
+    buffer = create_replay_buffer(buffer_capacity)
+    epsilon = np.linspace(epsilon_start, epsilon_end, num_episodes)
+    for i in range(num_episodes):
+        board, player = episode_reset_game()
+        while True:
+            # state = encode_board_one_hot_length_eighteen(board, player)
+            state = encode_board_flat_length_nine(board, player)
+            legal_mask = build_legal_mask(board)
+            action = dqn_select_action(online_params, state, legal_mask, epsilon[i], rng)
+            cur_state = episode_apply_action(board, action, player, player)
+            # next_state = encode_board_one_hot_length_eighteen(cur_state['next_board'], player)
+            next_state = encode_board_flat_length_nine(cur_state['next_board'], player)
+            next_legal_mask = build_legal_mask(cur_state['next_board'])
+            buffer = append_transition_to_buffer(buffer, state, action, cur_state['reward'], next_state, cur_state['done'], next_legal_mask)
+            buffer = cap_buffer_size_drop_oldest(buffer)
+
+            player = cur_state['next_player']
+            board = cur_state['next_board']
+            if cur_state['done']:
+                break
+
+        reward_history.append(cur_state['reward'])
+        online_params, adam_state, loss = dqn_train_step(online_params, target_params, adam_state, buffer, batch_size, gamma, lr, rng)
+        target_params = sync_target_network_periodically(online_params, target_params, i, sync_every_k)
+        loss_history.append(loss)
+
+    return dict(
+        online_params=online_params,
+        target_params=target_params,
+        loss_history=loss_history,
+        reward_history=reward_history,
+        architecture=architecture
+    )
 
 # Step 84 - compare_dqn_tabular_random_minimax (not yet solved)
 # TODO: implement
