@@ -1283,11 +1283,12 @@ def dqn_train_step(online_params, target_params, adam_state, buffer, batch_size,
     return online_params, adam_state, loss
 
 # Step 83 - train_dqn_agent
-def build_legal_mask(board):
+def build_legal_mask(board, input_dim=9):
     legal_moves = [row*3+col for row, col in get_legal_moves(board)]
     legal_mask = np.full(9, False)
     legal_mask[legal_moves] = True
-    # legal_mask = np.asarray(legal_mask.tolist() + legal_mask.tolist())
+    if input_dim == 18:
+        legal_mask = np.asarray(legal_mask.tolist() + legal_mask.tolist())
     return legal_mask
 
 
