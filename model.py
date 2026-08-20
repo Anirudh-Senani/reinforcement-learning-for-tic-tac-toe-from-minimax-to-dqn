@@ -1487,8 +1487,18 @@ def reinforce_log_prob_of_action(logits, legal_action_mask, action):
     probs = exp_logits/exp_logits.sum()
     return np.log(probs[action]), probs
 
-# Step 88 - reinforce_collect_episode_returns (not yet solved)
-# TODO: implement
+# Step 88 - reinforce_collect_episode_returns
+import numpy as np
+
+def reinforce_collect_episode_returns(rewards, gamma):
+    """Return discounted returns G_t for a REINFORCE episode as a numpy array of shape (T,)."""
+    # TODO: compute G_t = r_t + gamma * G_{t+1} for each timestep and return as np.ndarray.
+    n = len(rewards)
+    discounted_rewards = [0.0]*(n+1)
+    for i in range(n-1, -1, -1):
+        discounted_rewards[i] = rewards[i] + gamma*discounted_rewards[i+1]
+
+    return np.asarray(discounted_rewards[:n])
 
 # Step 89 - reinforce_policy_gradient_update (not yet solved)
 # TODO: implement
