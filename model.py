@@ -1482,15 +1482,17 @@ import numpy as np
 def reinforce_log_prob_of_action(logits, legal_action_mask, action):
     """Return (log_prob_of_action, full_prob_vector) under a softmax policy with illegal cells masked out."""
     # TODO: mask illegal logits, take a stable softmax, return log pi(action|s) and the probs.
+    int_action = False
     if isinstance(action, int):
-        actions = np.asarray([action])
+        action = np.asarray([action])
+        int_action = True
     logits = mask_illegal_actions_neg_inf(logits, legal_action_mask)
     exp_logits = np.exp(logits - logits.max(axis=-1, keepdims=True))
     probs = exp_logits/exp_logits.sum(axis=-1, keepdims=True)
     if len(probs.shape) == 1:
         probs = probs[None, :]
-    log_prob_action = np.log(probs[np.arange(actions.shape[0]), actions])
-    if isinstance(action, int):
+    log_prob_action = np.log(probs[np.arange(action.shape[0]), action])
+    if int_action:
         log_prob_action = float(log_prob_action[0])
         probs = probs[0]
     return log_prob_action, probs
