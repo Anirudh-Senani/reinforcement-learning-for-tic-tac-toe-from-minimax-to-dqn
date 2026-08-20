@@ -1526,12 +1526,14 @@ def reinforce_collect_episode_returns(rewards, gamma):
     # return np.dot(discount_matrix, rewards)
 
 # Step 89 - reinforce_policy_gradient_update
-def policy_gradient_backward_pass(params, cache, action_indices):
+def policy_gradient_backward_pass(params, cache, action_indices, returns):
     """Backprop MSE-on-chosen-action loss through the MLP and return param gradients."""
     # TODO: compute gradients dW1, db1, dW2, db2 for the MSE-on-chosen-action loss
     batch_size = action_indices.shape[0]
     dq = cache['probs'].copy()
     dq[np.arange(batch_size), action_indices] -= 1
+    dq *= returns[:, None]
+
     dW2 = cache['h1'].T @ dq
     db2 = dq.sum(axis=0)
     dh1 = dq @ params['W2'].T
@@ -1554,7 +1556,7 @@ def reinforce_policy_gradient_update(params, episode_cache, returns, adam_state,
     loss = -(returns * log_prob_action).sum()
     cache['probs'] = probs
 
-    grads = policy_gradient_backward_pass(params, cache, episode_cache['actions'])
+    grads = policy_gradient_backward_pass(params, cache, episode_cache['actions'], returns)
     params, adam_state = adam_update_step(params, grads, adam_state, learning_rate)
 
     return params, adam_state
