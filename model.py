@@ -1500,6 +1500,21 @@ def reinforce_collect_episode_returns(rewards, gamma):
 
     return np.asarray(discounted_rewards[:n])
 
+    # steps = np.arange(n)
+
+    # # 2. Use broadcasting to generate a matrix of step differences (j - i)
+    # # np.subtract.outer(steps, steps) yields a matrix where entry (i, j) is j - i
+    # distance_matrix = np.subtract.outer(steps, steps)
+
+    # # 3. Create the discount matrix gamma**(j - i)
+    # discount_matrix = np.power(gamma, distance_matrix)
+
+    # # 4. Mask the lower triangle to 0 (since future rewards don't affect the past)
+    # discount_matrix = np.triu(discount_matrix)
+
+    # # 5. Multiply the matrix by the rewards vector
+    # return np.dot(discount_matrix, rewards)
+
 # Step 89 - reinforce_policy_gradient_update (not yet solved)
 # TODO: implement
 
