@@ -1616,8 +1616,115 @@ def train_reinforce_agent(num_episodes, gamma, learning_rate, hidden_dim, oppone
         episode_outcomes=episode_outcomes
     )
 
-# Step 91 - compare_value_vs_policy_learners (not yet solved)
-# TODO: implement
+# Step 91 - compare_value_vs_policy_learners
+def opponent_policy_random(board, player, rng):
+    legal_moves = get_legal_moves(board)
+    legal_moves = [row*3+col for row, col in legal_moves]
+    return rng.choice(legal_moves)
+
+
+def opponent_policy_minimax(board, player, rng):
+    move = minimax_best_move(board, player)
+    return move[0]*3 + move[1]
+
+
+def compare_value_vs_policy_learners(num_episodes=5000, eval_games=200, seed=0):
+    """Train Q-learning, SARSA, REINFORCE under matched settings; return per-agent dicts."""
+    # TODO: train each agent, evaluate vs random and minimax, build learning curves
+    alpha = 1e-2
+    gamma = 0.9
+    initial_epsilon = 1.0
+    min_epsilon = 0.01
+    decay_rate = 0.995
+    learning_rate = 1e-2
+    hidden_dim = 36
+    rng = np.random.default_rng(seed)
+
+    q_learning = train_q_learning_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, decay_rate, opponent_policy_random, rng)
+    sarsa = train_sarsa_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, decay_rate, opponent_policy_random, rng)
+    reinforce = train_reinforce_agent(num_episodes, gamma, learning_rate, hidden_dim, opponent_policy_random, rng, seed)
+
+    # models = {
+    #     'q_learning' : {
+    #         'random' : train_q_learning_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, decay_rate, opponent_policy_random, rng),
+    #         'minimax' : train_q_learning_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, decay_rate, opponent_policy_minimax, rng)
+    #     },
+    #     'sarsa' : {
+    #         'random' : train_sarsa_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, decay_rate, opponent_policy_random, rng),
+    #         'minimax' : train_sarsa_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, decay_rate, opponent_policy_minimax, rng)
+    #     },
+    #     'reinforce' : {
+    #         'random' : train_reinforce_agent(num_episodes, gamma, learning_rate, hidden_dim, opponent_policy_random, rng, seed),
+    #         'minimax' : train_reinforce_agent(num_episodes, gamma, learning_rate, hidden_dim, opponent_policy_minimax, rng, seed)
+    #     }
+    # }
+
+    # results = {}
+    # outcome_scores = {'X_win': 1, 'O_win': -1, 'draw': 0}
+
+    # for model in models:
+    #     random_results = models[model]['random']['episode_outcomes']
+    #     minimax_results = models[model]['minimax']['episode_outcomes']
+
+    #     results[model] = {}
+    #     len_results = max(len(random_results), 1)
+
+    #     results[model]['win_rate_vs_random'] = round(random_results.count('X_win')/len_results*100,2)
+    #     results[model]['draw_rate_vs_minimax'] = round(minimax_results.count('draw')/len_results*100,2)
+    #     results[model]['learning_curve'] = [outcome_scores[score] for score in minimax_results]
+
+    models = {
+        'q_learning': q_learning,
+        'sarsa': sarsa,
+        'reinforce': reinforce
+    }
+
+    outcome_scores = {'X_win': 1, 'O_win': -1, 'draw': 0}
+
+    results = {}
+    for model_name, model in models.items():
+        result = {}
+        for opponent_policy, kind, metric, metric_value in [(opponent_policy_random, 'random', 'win', 1), (opponent_policy_minimax, 'minimax', 'draw', 0)]:
+            rate = 0
+            agent_player = 1
+            epsilon = min_epsilon
+            for _ in range(eval_games):
+                board, _ = episode_reset_game()
+                player = agent_player
+                while True:
+                    if model_name in ['q_learning', 'sarsa']:
+                        state, action = episode_agent_pick_action(model['q_table'], board, player, epsilon, rng)
+                        cur_state = episode_apply_action(board, action, player, agent_player)
+                    else:
+                        state = encode_board_flat_length_nine(board, player)
+                        legal_mask = build_legal_mask(board)
+                        logits = mlp_forward_pass(model['params'], state[None,:])[0][0]
+                        action = int(np.argmax(logits[legal_mask]))
+                        _, probs = reinforce_log_prob_of_action(logits, legal_mask, action)
+                        action = int(np.argmax(probs))
+                        cur_state = episode_apply_action(board, action, player, agent_player)
+
+                    if not cur_state['done']:
+                        board = cur_state['next_board']
+                        player = cur_state['next_player']
+                        action = opponent_policy(board, player, rng)
+                        cur_state = episode_apply_action(board, action, player, agent_player)
+
+                    board = cur_state['next_board']
+                    player = cur_state['next_player']
+                    if cur_state['done']:
+                        break
+
+                agent_player = switch_player(agent_player)
+                if cur_state['reward'] == metric_value:
+                    rate += 1
+
+            result[f"{metric}_rate_vs_{kind}"] = round(rate/max(eval_games, 1.0)*100, 2)
+
+        result['learning_curve'] = [outcome_scores[outcome] for outcome in model['episode_outcomes']]
+        results[model_name] = result
+
+    return results
 
 # Step 92 - symmetry_augmented_training (not yet solved)
 # TODO: implement
