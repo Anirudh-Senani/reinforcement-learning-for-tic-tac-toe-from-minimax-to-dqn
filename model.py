@@ -1483,8 +1483,8 @@ def reinforce_log_prob_of_action(logits, legal_action_mask, action):
     """Return (log_prob_of_action, full_prob_vector) under a softmax policy with illegal cells masked out."""
     # TODO: mask illegal logits, take a stable softmax, return log pi(action|s) and the probs.
     logits = mask_illegal_actions_neg_inf(logits, legal_action_mask)
-    exp_logits = np.exp(logits - logits.max())
-    probs = exp_logits/exp_logits.sum()
+    exp_logits = np.exp(logits - logits.max(axis=-1, keepdims=True))
+    probs = exp_logits/exp_logits.sum(axis=-1, keepdims=True)
     return np.log(probs[action]), probs
 
 # Step 88 - reinforce_collect_episode_returns
