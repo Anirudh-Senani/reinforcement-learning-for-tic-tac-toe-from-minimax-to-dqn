@@ -1482,10 +1482,18 @@ import numpy as np
 def reinforce_log_prob_of_action(logits, legal_action_mask, action):
     """Return (log_prob_of_action, full_prob_vector) under a softmax policy with illegal cells masked out."""
     # TODO: mask illegal logits, take a stable softmax, return log pi(action|s) and the probs.
+    if isinstance(action, int):
+        actions = np.asarray([action])
     logits = mask_illegal_actions_neg_inf(logits, legal_action_mask)
     exp_logits = np.exp(logits - logits.max(axis=-1, keepdims=True))
     probs = exp_logits/exp_logits.sum(axis=-1, keepdims=True)
-    return np.log(probs[action]), probs
+    if len(probs.shape) == 1:
+        probs = probs[None, :]
+    log_prob_action = np.log(probs[np.arange(actions.shape[0]), actions])
+    if isinstance(action, int):
+        log_prob_action = float(log_prob_action[0])
+        probs = probs[0]
+    return log_prob_action, probs
 
 # Step 88 - reinforce_collect_episode_returns
 import numpy as np
@@ -1515,8 +1523,39 @@ def reinforce_collect_episode_returns(rewards, gamma):
     # # 5. Multiply the matrix by the rewards vector
     # return np.dot(discount_matrix, rewards)
 
-# Step 89 - reinforce_policy_gradient_update (not yet solved)
-# TODO: implement
+# Step 89 - reinforce_policy_gradient_update
+def policy_gradient_backward_pass(params, cache, action_indices):
+    """Backprop MSE-on-chosen-action loss through the MLP and return param gradients."""
+    # TODO: compute gradients dW1, db1, dW2, db2 for the MSE-on-chosen-action loss
+    batch_size = action_indices.shape[0]
+    dq = cache['probs'].copy()
+    dq[np.arange(batch_size), action_indices] -= 1
+    dW2 = cache['h1'].T @ dq
+    db2 = dq.sum(axis=0)
+    dh1 = dq @ params['W2'].T
+    dz1 = np.where(cache['z1']>0.0, dh1, 0.0)
+    dW1 = cache['x'].T @ dz1
+    db1 = dz1.sum(axis=0)
+
+    return dict(
+        W1=dW1,
+        b1=db1,
+        W2=dW2,
+        b2=db2
+    )
+
+
+def reinforce_policy_gradient_update(params, episode_cache, returns, adam_state, learning_rate=1e-2):
+    # TODO: Apply one REINFORCE update that ascends sum_t G_t * log pi(a_t|s_t) through the policy MLP.
+    logits, cache = mlp_forward_pass(params, episode_cache['states'])
+    log_prob_action, probs = reinforce_log_prob_of_action(logits, episode_cache['legal_masks'], episode_cache['actions'])
+    loss = -(returns * log_prob_action).sum()
+    cache['probs'] = probs
+
+    grads = policy_gradient_backward_pass(params, cache, episode_cache['actions'])
+    params, adam_state = adam_update_step(params, grads, adam_state, learning_rate)
+
+    return params, adam_state
 
 # Step 90 - train_reinforce_agent (not yet solved)
 # TODO: implement
