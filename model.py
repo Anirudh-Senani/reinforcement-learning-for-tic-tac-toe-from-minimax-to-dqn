@@ -1561,8 +1561,60 @@ def reinforce_policy_gradient_update(params, episode_cache, returns, adam_state,
 
     return params, adam_state
 
-# Step 90 - train_reinforce_agent (not yet solved)
-# TODO: implement
+# Step 90 - train_reinforce_agent
+def train_reinforce_agent(num_episodes, gamma, learning_rate, hidden_dim, opponent_policy, rng, init_seed=0):
+    # TODO: roll out episodes, sample masked-softmax actions, REINFORCE update per episode
+    architecture = build_mlp_architecture(9, hidden_dim, 9)
+    params = initialize_mlp_parameters(architecture, init_seed)
+    adam_state = {}
+    episode_outcomes = []
+
+    agent_player = 1
+    for _ in range(num_episodes):
+        board, player = episode_reset_game()
+        transitions = []
+        while True:
+            state = encode_board_flat_length_nine(board, player)
+            legal_mask = build_legal_mask(board)
+            logits = mlp_forward_pass(params, state[None,:])[0][0]
+            _, probs = reinforce_log_prob_of_action(logits, legal_mask, 0)
+            action = np.argmax(probs)
+            cur_state = episode_apply_action(board, action, player, agent_player)
+            transitions.append(dict(state=state,action=action,legal_mask=legal_mask,reward=cur_state['reward']))
+
+            if not cur_state['done']:
+                board = cur_state['next_board']
+                player = cur_state['next_player']
+                action = opponent_policy(board, player, rng)
+                if isinstance(action, (tuple, list)):
+                    action = action[0]*3 + action[1]
+                cur_state = episode_apply_action(board, action, player, agent_player)
+
+            board = cur_state['next_board']
+            player = cur_state['next_player']
+            if cur_state['done']:
+                break
+
+        episode_outcomes.append(cur_state['status'])
+        episode_cache = {}
+        for key in transitions[0]:
+            episode_cache[key+'s'] = []
+
+        for transition in transitions:
+            for key in transition:
+                episode_cache[key+'s'].append(transition[key])
+
+        for key in episode_cache:
+            episode_cache[key] = np.stack(episode_cache[key])
+
+        returns = reinforce_collect_episode_returns(episode_cache['rewards'], gamma)
+        params, adam_state = reinforce_policy_gradient_update(params, episode_cache, returns, adam_state, learning_rate)
+
+    return dict(
+        params=params,
+        architecture=architecture,
+        episode_outcomes=episode_outcomes
+    )
 
 # Step 91 - compare_value_vs_policy_learners (not yet solved)
 # TODO: implement
