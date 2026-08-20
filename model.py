@@ -1471,10 +1471,10 @@ def train_sarsa_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, 
             q_table = sarsa_on_policy_update(q_table, prev_state_key, prev_action, cur_state['reward'], state_key, action, cur_state['done'], alpha, gamma)
         episode_outcomes.append(cur_state['status'])
 
-        return dict(
-            q_table=q_table,
-            episode_outcomes=episode_outcomes
-        )
+    return dict(
+        q_table=q_table,
+        episode_outcomes=episode_outcomes
+    )
 
 # Step 87 - reinforce_log_prob_of_action (not yet solved)
 # TODO: implement
