@@ -1476,8 +1476,16 @@ def train_sarsa_agent(num_episodes, alpha, gamma, initial_epsilon, min_epsilon, 
         episode_outcomes=episode_outcomes
     )
 
-# Step 87 - reinforce_log_prob_of_action (not yet solved)
-# TODO: implement
+# Step 87 - reinforce_log_prob_of_action
+import numpy as np
+
+def reinforce_log_prob_of_action(logits, legal_action_mask, action):
+    """Return (log_prob_of_action, full_prob_vector) under a softmax policy with illegal cells masked out."""
+    # TODO: mask illegal logits, take a stable softmax, return log pi(action|s) and the probs.
+    logits = mask_illegal_actions_neg_inf(logits, legal_action_mask)
+    exp_logits = np.exp(logits - logits.max())
+    probs = exp_logits/exp_logits.sum()
+    return np.log(probs[action]), probs
 
 # Step 88 - reinforce_collect_episode_returns (not yet solved)
 # TODO: implement
