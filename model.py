@@ -683,6 +683,10 @@ def episode_agent_pick_action(q_table, board, current_player, epsilon, rng):
 def episode_apply_action(board, action, current_player, agent_player):
     """Apply one move, return next_board/next_player/status/reward/done."""
     # TODO: convert action to (row, col), place the move, then evaluate status and reward.
+    if isinstance(action, (tuple, list)):
+        row = action[0]
+        col = action[1]
+    
     row = action//3
     col = action%3
 
