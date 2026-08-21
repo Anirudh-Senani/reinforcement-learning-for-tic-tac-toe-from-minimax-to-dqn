@@ -686,9 +686,9 @@ def episode_apply_action(board, action, current_player, agent_player):
     if isinstance(action, (tuple, list)):
         row = action[0]
         col = action[1]
-    
-    row = action//3
-    col = action%3
+    else:
+        row = action//3
+        col = action%3
 
     next_board = place_move(board, row, col, current_player)
     next_player = switch_player(current_player)
