@@ -1726,6 +1726,50 @@ def compare_value_vs_policy_learners(num_episodes=5000, eval_games=200, seed=0):
 
     return results
 
-# Step 92 - symmetry_augmented_training (not yet solved)
-# TODO: implement
+# Step 92 - symmetry_augmented_training
+import numpy as np
+
+def get_d4_symmetries(board, next_board, action):
+    n = 3
+    row = action//n
+    col = action%n
+
+    symmetries = {
+        "Identity": (lambda m: m, lambda r, c: (r, c)),
+        "Rotation 90° CCW": (lambda m: np.rot90(m, 1), lambda r, c: (n - 1 - c, r)),
+        "Rotation 180°": (lambda m: np.rot90(m, 2), lambda r, c: (n - 1 - r, n - 1 - c)),
+        "Rotation 270° CCW": (lambda m: np.rot90(m, 3), lambda r, c: (c, n - 1 - r)),
+        "Horizontal Flip (Up-Down)": (lambda m: np.flipud(m), lambda r, c: (n - 1 - r, c)),
+        "Vertical Flip (Left-Right)": (lambda m: np.fliplr(m), lambda r, c: (r, n - 1 - c)),
+        "Main Diagonal Flip (Transpose)": (lambda m: m.T, lambda r, c: (c, r)),
+        "Anti-Diagonal Flip": (lambda m: np.fliplr(np.flipud(m)).T, lambda r, c: (n - 1 - c, n - 1 - r))
+    }
+
+    results = []
+    for matrix_op, pos_op in symmetries.values():
+        transformed_board = matrix_op(board)
+        transformed_next_board = matrix_op(next_board)
+        transformed_action = pos_op(row, col)
+        transformed_action = transformed_action[0]*3 + transformed_action[1]
+        results.append((transformed_board, transformed_next_board, transformed_action))
+
+    return results
+
+
+def symmetry_augmented_training(q_table, state_board, action, reward, next_state_board, done, alpha, gamma):
+    """Apply Q-learning updates to all 8 D4 symmetries of a transition."""
+    # TODO: for each of the 8 D4 symmetries, transform boards and action, then update
+
+    for transformed_board, transformed_next_board, transformed_action in get_d4_symmetries(state_board, next_state_board, action):
+        bootstrap = 0.0
+        state_key = encode_board_state_key(transformed_board)
+        if not done:
+            next_state_key = encode_board_state_key(transformed_board)
+            for move in get_legal_moves(transformed_next_board):
+                legal_action = move[0]*3 + move[1]
+                bootstrap = max(bootstrap, get_q_value(q_table, next_state_key, legal_action))
+
+        q_value = get_q_value(q_table, state_key, transformed_action)
+        q_value += alpha * (reward + gamma * bootstrap - q_value)
+        set_q_value(q_table, state_key, transformed_action, q_value)
 
